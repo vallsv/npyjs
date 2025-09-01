@@ -12,6 +12,7 @@ export type TypedArray =
     | Uint16Array
     | Uint32Array
     | BigUint64Array
+    | Float16Array
     | Float32Array
     | Float64Array;
 
@@ -77,7 +78,10 @@ function dtypeToArray(dtype: string, buf: ArrayBufferLike, offset: number, opts:
         case "f4": return new Float32Array(buf, offset);
         case "f8": return new Float64Array(buf, offset);
         case "f2": {
-            if (opts.convertFloat16 !== false) {
+            if (typeof Float16Array !== "undefined") {
+                // es2025 only
+                return new Float16Array(buf, offset);
+            } else if (opts.convertFloat16 !== false) {
                 const u16 = new Uint16Array(buf, offset);
                 const f32 = new Float32Array(u16.length);
                 for (let i = 0; i < u16.length; i++) f32[i] = f16toF32(u16[i]);
@@ -165,6 +169,12 @@ function arrayToDtype(array: unknown): DType {
     }
     if (array instanceof Float64Array) {
         return "f8";
+    }
+    if (typeof Float16Array !== "undefined") {
+        // es2025 only
+        if (array instanceof Float16Array) {
+            return "f2";
+        }
     }
     const kind = typeof array === "object" ? array?.constructor?.name : typeof array;
     throw new TypeError(`Unsupported dtype for ${kind}`);

@@ -28,6 +28,17 @@ describe("npyjs dump", () => {
         }
     });
 
+    if (typeof Float16Array !== "undefined") {
+        it("native float16", async () => {
+            const array = new Float16Array([1, 2, 254, 255]);
+            const bytes = npyjs.dump(array, [2, 2]);
+            // parse back the bytes to check the result
+            const result = await npyjs.load(bytes);
+            expect(result.shape).toEqual([2, 2]);
+            expect(result.data).toEqual(array);
+        });
+    }
+
     it("check width/height", async () => {
         const array = new Uint8Array([1, 2, 3, 4, 5, 6]);
         const shape = [3, 2];
